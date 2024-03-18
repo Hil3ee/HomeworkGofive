@@ -170,13 +170,12 @@ namespace Homework.Controllers
                                 lastname = AdduserRequest.lastname,
                                 email = AdduserRequest.email,
                                 phone = AdduserRequest.phone,
-                                username = AdduserRequest.username,
-                                password = AdduserRequest.password,
                                 role = new RoleAddResponse
                                 {
                                     roleId = AdduserRequest.roleid,
                                     roleName = rolaNameQuery
                                 },
+                                username = AdduserRequest.username,
                                 permisson = new PermissionAddResponse[]
                                 {
                                     new PermissionAddResponse
@@ -253,10 +252,19 @@ namespace Homework.Controllers
         [Route("EditUser")]
         public async Task<IActionResult> Edituser(EditeUserDtoRequest editeUserDtoRequest, string id)
         {
-            var userIdquery = await DbContext.AddUsers
+
+
+            var userDataquery = await DbContext.AddUsers
                             .Where(u => u.userid == id)
-                            .Select(u => u.userid)
+                            .Select(u => new 
+                            {
+                                userid = u.userid,
+                                password = u.password,
+                                createdate = u.createdate,
+                            })
                             .FirstOrDefaultAsync();
+
+            
 
             var permissionnameCreate = id + "-"
                                           + "r." + editeUserDtoRequest.permission[0].isReadable + "-"
@@ -270,7 +278,6 @@ namespace Homework.Controllers
                 editeUserDtoRequest.lastname,
                 editeUserDtoRequest.email,
                 editeUserDtoRequest.username,
-                editeUserDtoRequest.password,
                 editeUserDtoRequest.roleid,
                 editeUserDtoRequest.permission[0].permissionid
 
@@ -284,15 +291,11 @@ namespace Homework.Controllers
             }
 
             //Check that the userid received matches the one in the databases.
-            if (userIdquery != null)
+            if (userDataquery != null)
             {
                 //Check that all received values ​​are not null.
                 if (allFieldsFilled == true)
                 {
-                    var createDate =  await DbContext.AddUsers
-                                    .Where(u => u.userid == id)
-                                    .Select(u => u.createdate)
-                                    .FirstOrDefaultAsync();
 
                     var datauser = new Adduser
                     {
@@ -302,12 +305,12 @@ namespace Homework.Controllers
                         email = editeUserDtoRequest.email,
                         phone = editeUserDtoRequest.phone,
                         username = editeUserDtoRequest.username,
-                        password = editeUserDtoRequest.password,
                         roleId = editeUserDtoRequest.roleid,
                         permissionId = editeUserDtoRequest.permission[0].permissionid,
-                        createdate = createDate
+                        createdate = userDataquery.createdate,
+                        password = userDataquery.password
                     };
-                    
+                    DbContext.AddUsers.Update(datauser);
 
                     var permissiondata = new Permission
                     {
@@ -318,7 +321,6 @@ namespace Homework.Controllers
                         isDeletable = editeUserDtoRequest.permission[0].isDeletable,
                     };
                     DbContext.Permissions.Update(permissiondata);
-                    DbContext.AddUsers.Update(datauser);
 
                     await DbContext.SaveChangesAsync();
 
@@ -329,31 +331,30 @@ namespace Homework.Controllers
                             code = "200",
                             description = "Success"
                         },
-                        Data = new DataPermissionEditResponse[]
+                        Data = new DataEditResponse 
                         {
-                        new DataPermissionEditResponse
-                        {
+                            userId = id,
                             firstname = editeUserDtoRequest.firstname,
                             lastname = editeUserDtoRequest.lastname,
                             email = editeUserDtoRequest.email,
                             phone = editeUserDtoRequest.phone,
-                            username = editeUserDtoRequest.username,
-                            password = editeUserDtoRequest.password,
                             role = new RoleEditResponse
                             {
                                 roleid = editeUserDtoRequest.roleid,
-                                rolename =  await DbContext.Roles.Where(r => r.roleId == editeUserDtoRequest.roleid).Select(r => r.roleName).FirstOrDefaultAsync()
+                                rolename = await DbContext.Roles.Where(r => r.roleId == editeUserDtoRequest.roleid).Select(r => r.roleName).FirstOrDefaultAsync()
                             },
+                            username = editeUserDtoRequest.username,
                             permission = new PermissionEditResponse[]
-                                      {
-                                            new PermissionEditResponse
-                                            {
-                                                permissionId = editeUserDtoRequest.permission[0].permissionid,
-                                                permissionName = permissionnameCreate
-                                            }
-                                      }
+                            {
+                                new PermissionEditResponse
+                                {
+                                    permissionId = editeUserDtoRequest.permission[0].permissionid,
+                                    permissionName = permissionnameCreate
+                                }
+                            }
+
                         }
-                        }
+
                     };
                     return Ok(response);
                 }
@@ -393,38 +394,37 @@ namespace Homework.Controllers
 
                 if (getUserQuery != null)
                 {
-                    var response = new AddUserDtoResponse
+                    var response = new GetUserByIdDtoResponse
                     {
                         Status = new Status
                         {
                             code = "200",
                             description = "Success"
                         },
-                        Data = new DataAdduserResponse[]
+                        Data = new DataAdduserResponse
                         {
-                            new DataAdduserResponse
+                            userid = userId,
+                            firstname = getUserQuery.userdata.firstname,
+                            lastname = getUserQuery.userdata.lastname,
+                            email = getUserQuery.userdata.email,
+                            phone = getUserQuery.userdata.phone,
+                            role = new RoleAddResponse
                             {
-                                userid = userId,
-                                firstname = getUserQuery.userdata.firstname,
-                                lastname = getUserQuery.userdata.lastname,
-                                email = getUserQuery.userdata.email,
-                                phone = getUserQuery.userdata.phone,
-                                role = new RoleAddResponse
+                                roleId = getUserQuery.userdata.roleId,
+                                roleName = getUserQuery.roleName,
+                            },
+                            username = getUserQuery.userdata.username,
+                            permisson = new PermissionAddResponse[]
+                            {
+                                new PermissionAddResponse
                                 {
-                                    roleId = getUserQuery.userdata.roleId,
-                                    roleName = getUserQuery.roleName,
-                                },
-                                username = getUserQuery.userdata.username,
-                                permisson = new PermissionAddResponse[]
-                                {
-                                    new PermissionAddResponse
-                                    {
-                                        permissionId = getUserQuery.userdata.permissionId,
-                                        permissionName = getUserQuery.permissionName,
-                                    }
+                                    permissionId = getUserQuery.userdata.permissionId,
+                                    permissionName = getUserQuery.permissionName,
+
                                 }
                             }
-                        }
+                         }
+                        
                     };
 
                     return Ok(response);
@@ -474,7 +474,7 @@ namespace Homework.Controllers
             }
             
             var orderDirection = "ascending";
-            if (request.orderDirection == "descending")
+            if (request.orderDirection.ToLower() == "descending")
             {
                 orderDirection = "descending";
             }
