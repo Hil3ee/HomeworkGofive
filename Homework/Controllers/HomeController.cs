@@ -440,17 +440,31 @@ namespace Homework.Controllers
                         join p in DbContext.Permissions on a.permissionId equals p.permissionId
                         join r in DbContext.Roles on a.roleId equals r.roleId
                         where (string.Concat(a.firstname, " ", a.lastname) == search ||
-                              a.email == search ||
-                              a.firstname == search ||
-                              a.lastname == search ||
-                              p.permissionName == search ||
-                              r.roleName == search)
+                                a.email == search ||
+                                a.firstname == search ||
+                                a.lastname == search ||
+                                p.permissionName == search ||
+                                r.roleName == search
+                                )
                         select new
                         {
                             userTable = a,
                             roleName = r.roleName,
                             permissionName = p.permissionName
                         };
+
+            if(search == null || search == "") 
+            {
+                query = from a in DbContext.AddUsers
+                        join p in DbContext.Permissions on a.permissionId equals p.permissionId
+                        join r in DbContext.Roles on a.roleId equals r.roleId
+                        select new
+                        {
+                            userTable = a,
+                            roleName = r.roleName,
+                            permissionName = p.permissionName
+                        };
+            }
             
             var orderDirection = "ascending";
             if (request.orderDirection == "descending")
