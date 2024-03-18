@@ -264,7 +264,7 @@ namespace Homework.Controllers
                                           + "d." + editeUserDtoRequest.permission[0].isDeletable;
 
             bool allFieldsFilled = true;
-
+           
             foreach (var field in new string[] {
                 editeUserDtoRequest.firstname,
                 editeUserDtoRequest.lastname,
@@ -289,6 +289,11 @@ namespace Homework.Controllers
                 //Check that all received values ​​are not null.
                 if (allFieldsFilled == true)
                 {
+                    var createDate =  await DbContext.AddUsers
+                                    .Where(u => u.userid == id)
+                                    .Select(u => u.createdate)
+                                    .FirstOrDefaultAsync();
+
                     var datauser = new Adduser
                     {
                         userid = id,
@@ -300,8 +305,9 @@ namespace Homework.Controllers
                         password = editeUserDtoRequest.password,
                         roleId = editeUserDtoRequest.roleid,
                         permissionId = editeUserDtoRequest.permission[0].permissionid,
+                        createdate = createDate
                     };
-                    DbContext.AddUsers.Update(datauser);
+                    
 
                     var permissiondata = new Permission
                     {
@@ -312,6 +318,7 @@ namespace Homework.Controllers
                         isDeletable = editeUserDtoRequest.permission[0].isDeletable,
                     };
                     DbContext.Permissions.Update(permissiondata);
+                    DbContext.AddUsers.Update(datauser);
 
                     await DbContext.SaveChangesAsync();
 
