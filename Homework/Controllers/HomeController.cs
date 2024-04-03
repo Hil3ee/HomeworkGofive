@@ -111,10 +111,10 @@ namespace Homework.Controllers
                 }
             }
 
-            var permissionnameCreate = AdduserRequest.userid + "-"
-                                          + "r." + AdduserRequest.permission[0].isReadable + "-"
-                                          + "w." + AdduserRequest.permission[0].isWritable + "-"
-                                          + "d." + AdduserRequest.permission[0].isDeletable;
+            var permissionNameQuery = await DbContext.Permissions
+                            .Where(p => p.permissionId == AdduserRequest.permission[0].permissionid)
+                            .Select(p => p.permissionName)
+                            .FirstOrDefaultAsync();
 
             if (allFieldsFilled == true) //Make sure the user has filled out all fields.
             {
@@ -137,15 +137,6 @@ namespace Homework.Controllers
                     };
                     DbContext.AddUsers.Add(adduser);
 
-                    var addpermission = new Permission
-                    {
-                        permissionId = AdduserRequest.permission[0].permissionid,
-                        permissionName = permissionnameCreate,
-                        isReadable = AdduserRequest.permission[0].isReadable,
-                        isWritable = AdduserRequest.permission[0].isWritable,
-                        isDeletable = AdduserRequest.permission[0].isDeletable,
-                    };
-                    DbContext.Permissions.Add(addpermission);
 
                     await DbContext.SaveChangesAsync();
 
@@ -181,7 +172,7 @@ namespace Homework.Controllers
                                     new PermissionAddResponse
                                     {
                                         permissionId = AdduserRequest.permission[0].permissionid,
-                                        permissionName = permissionnameCreate,
+                                        permissionName = permissionNameQuery,
                                     }
                                 }
 
@@ -219,9 +210,6 @@ namespace Homework.Controllers
                 if (useridQuery != null)
                 {
                     DbContext.AddUsers.Remove(useridQuery);
-
-                    var permission = await DbContext.Permissions.FirstOrDefaultAsync(p => p.permissionId == useridQuery.permissionId);
-                    DbContext.Permissions.Remove(permission);
 
                     await DbContext.SaveChangesAsync();
                 }
@@ -264,12 +252,12 @@ namespace Homework.Controllers
                             })
                             .FirstOrDefaultAsync();
 
-            
 
-            var permissionnameCreate = id + "-"
-                                          + "r." + editeUserDtoRequest.permission[0].isReadable + "-"
-                                          + "w." + editeUserDtoRequest.permission[0].isWritable + "-"
-                                          + "d." + editeUserDtoRequest.permission[0].isDeletable;
+
+            var permissionNameQuery = await DbContext.Permissions
+                           .Where(p => p.permissionId == editeUserDtoRequest.permission[0].permissionid)
+                           .Select(p => p.permissionName)
+                           .FirstOrDefaultAsync();
 
             bool allFieldsFilled = true;
            
@@ -315,7 +303,7 @@ namespace Homework.Controllers
                     var permissiondata = new Permission
                     {
                         permissionId = editeUserDtoRequest.permission[0].permissionid,
-                        permissionName = permissionnameCreate,
+                        permissionName = permissionNameQuery,
                         isReadable = editeUserDtoRequest.permission[0].isReadable,
                         isWritable = editeUserDtoRequest.permission[0].isWritable,
                         isDeletable = editeUserDtoRequest.permission[0].isDeletable,
@@ -331,7 +319,7 @@ namespace Homework.Controllers
                             code = "200",
                             description = "Success"
                         },
-                        Data = new DataEditResponse 
+                        Data = new DataEditResponse
                         {
                             userId = id,
                             firstname = editeUserDtoRequest.firstname,
@@ -349,7 +337,7 @@ namespace Homework.Controllers
                                 new PermissionEditResponse
                                 {
                                     permissionId = editeUserDtoRequest.permission[0].permissionid,
-                                    permissionName = permissionnameCreate
+                                    permissionName = permissionNameQuery               
                                 }
                             }
 

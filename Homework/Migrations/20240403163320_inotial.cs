@@ -5,7 +5,7 @@
 namespace Homework.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class inotial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -61,7 +61,8 @@ namespace Homework.Migrations
                     username = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     password = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     roleId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    permissionId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    permissionId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    createdate = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
